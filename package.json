@@ -4,7 +4,8 @@
   "description": "erp_prospect_backend",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+    "start": "node src/index.js"
   },
   "author": "yuriybevov <yuriybevov@gmail.com>",
   "license": "ISC",
