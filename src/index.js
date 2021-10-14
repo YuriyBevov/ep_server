@@ -28,7 +28,11 @@ mongoose.connect(db, {
 //* ==============================
 
 const app = express();
-app.use(cors());
+app.use(cors(
+  {
+    origin: 'http://cj37573.tmweb.ru/'
+  }
+));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
