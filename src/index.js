@@ -29,6 +29,11 @@ mongoose.connect(db, {
 
 const app = express();
 
+app.use(cors({
+    origin: true,
+    credentials: true
+}));
+
 app.use(function (req, res, next) {
 
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -39,10 +44,6 @@ app.use(function (req, res, next) {
   next();
 });
 
-app.use(cors({
-    origin: true,
-    credentials: true
-}));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
