@@ -56,10 +56,6 @@ app.use('/departments', departmentsAPI);
 
 //app.use(express.static(__dirname + '/public/upload'));
 
-//----------
-
-const server = require('http').createServer(app);
-
 // auth //
 
 const passport = require("passport");
@@ -71,8 +67,10 @@ app.use(passport.initialize());
 require('./config/passport')(passport);
 
 // Create port
+const hostname = 'localhost';
 const PORT = process.env.PORT || 3000;
+const server = require('http').createServer(app);
 
-server.listen(PORT, () => {
-  console.log('Connected to port ' + PORT)
+server.listen(PORT, hostname, () => {
+  console.log(`server running at http://${hostname}:${PORT}`);
 })
