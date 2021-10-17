@@ -68,7 +68,7 @@ require('./config/passport')(passport);
 
 // Create port
 const hostname = 'localhost';
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 const server = require('http').createServer(app);
 
 server.listen(PORT, hostname, () => {
