@@ -1,5 +1,4 @@
 const { DepartmentModel, UserModel, TaskModel } = require('../models/index.js');
-const checkUserDepartment = require('../functions/checkUserDepartment');
 
 class departmentsControllers {
     async getAll(req, res) {
@@ -9,6 +8,7 @@ class departmentsControllers {
             .then(async (departments) => {
                 await UserModel.find({})
                 .then(users => {
+                    // наполняю отдел пользователями
                     departments.forEach(dep => {
                         users.find(user => {
                             user.department === dep.title ?
@@ -91,8 +91,6 @@ class departmentsControllers {
             })
         }
     }
-
-
 }
 
 module.exports = new departmentsControllers() 

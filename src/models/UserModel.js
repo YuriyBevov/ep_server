@@ -10,8 +10,10 @@ const UserSchema = new Schema({
     fullName: { type : String},
 
     created: { type: Date, required: true},
+    //---
     department: { type: String, default: null },
     isDepartmentHead: { type: Boolean, default: false },
+    //---
     roles: { type: Array, required: true },
     permits: { type: Array },
 

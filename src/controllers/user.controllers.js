@@ -1,14 +1,13 @@
 const { UserModel, GroupModel, DepartmentModel } = require('../models/index.js');
 
 
-
 // кодировка пароля
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { SECRET_JWT_KEY } = require('../config/keys');
 
 const fillUserData = require('../functions/fillUserData');
-const setUserDepartment = require('../functions/setUserDepartment');
+
 
 // функция создания jwt-токена
 const generateAccessToken = (payload) => {
@@ -21,7 +20,7 @@ const generateAccessToken = (payload) => {
 class userControllers {
     async registration(req, res) {
         try {          
-            const { login, password, confirmPassword } = req.body;
+            const { login, password, confirmPassword, department, isDepartmentHead } = req.body;
 
             await UserModel.findOne({login})
             .then((candidate) => {
@@ -40,9 +39,36 @@ class userControllers {
                     const hashPassword = bcrypt.hashSync(password, 7)
                     const data = req.body
                     data.password = hashPassword
+                    
+                    if(isDepartmentHead === false) {
+                      UserModel.find({})
+                      .then(users => {
+                          let depMembers = []
+                          users.forEach(user => {
+                            if(user.department === department){
+                              depMembers.push(user)
+                            }
+                          })
 
-                    new UserModel(data).save()
-            
+                          if(depMembers.length) {
+                            let isHeadExist = !!depMembers.find(member => member.isDepartmentHead === true)
+
+                            if(!isHeadExist) {
+                              req.body.isDepartmentHead = true
+                            }
+                          }
+
+                          new UserModel(req.body).save();
+                      })
+                      .catch(err => {
+                        return res.status(400).json({
+                            message: 'Произошла ошибка в процессе регистрации... Попробуйте снова !'
+                        })
+                      })
+                    } else {
+                      new UserModel(req.body).save();
+                    }
+                    
                     return res.status(200).json({
                         message: 'Пользователь был успешно зарегистрирован !'
                     })
@@ -122,11 +148,6 @@ class userControllers {
         try {
             await UserModel.find({})
             .then(async (users) => {
-
-                /*await DepartmentModel.find({})
-                .then( departments => {
-                    setUserDepartment(departments, users)
-                })*/
 
                 let data = []
     
