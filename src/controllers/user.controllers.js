@@ -1,4 +1,4 @@
-const { UserModel, GroupModel, DepartmentModel } = require('../models/index.js');
+const { UserModel, TaskModel, DepartmentModel } = require('../models/index.js');
 
 
 // кодировка пароля
@@ -169,6 +169,21 @@ class userControllers {
                 message: 'Произошла непредвиденная ошибка... Попробуйте перезагрузить страницу !'
             })
         }
+    }
+
+    async deleteOne(req, res) {
+      try {
+        console.log(req.body)
+        return res.status(200).json({
+            message: 'Пользователь и все его данные были успешно удалены !'
+        })
+      }
+
+      catch {
+        return res.status(400).json({
+            message: 'Произошла непредвиденная ошибка... Попробуйте перезагрузить страницу !'
+        })
+      }
     }
 }
 

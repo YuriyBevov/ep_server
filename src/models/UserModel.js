@@ -10,9 +10,15 @@ const UserSchema = new Schema({
     fullName: { type : String},
 
     created: { type: Date, required: true},
-    //---
+    //---Отдел пользователя
     department: { type: String, default: null },
     isDepartmentHead: { type: Boolean, default: false },
+    //---
+
+    //--- Задачи пользователя
+    tasksMember: { type: Array },
+    tasksPerformer: { type: Array },
+    tasksMaster: { type: Array },
     //---
     roles: { type: Array, required: true },
     permits: { type: Array },
