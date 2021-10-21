@@ -30,12 +30,9 @@ class taskControllers {
                 else {
                     new TaskModel(taskData).save().
                     then(task => {
-                        console.log(task, 'in task')
                         UserModel.find({})
                         .then((users) => {
-                            console.log('in users')
                             users.forEach(user => {
-                                console.log('master', master, 'perf', performers, 'memb', members)
                                 master !== null ?
                                 master._id == user._id ?
                                 user.tasksMaster.push(task._id) : null
@@ -47,7 +44,6 @@ class taskControllers {
                                     user.tasksMember.push(task._id) : null
                                 }) : null
 
-                                
                                 performers !== null ?
                                 performers.forEach(performer => {
                                     user._id == performer._id ?

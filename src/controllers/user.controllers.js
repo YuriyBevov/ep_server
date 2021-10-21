@@ -173,10 +173,26 @@ class userControllers {
 
     async deleteOne(req, res) {
       try {
-        console.log(req.body)
-        return res.status(200).json({
-            message: 'Пользователь и все его данные были успешно удалены !'
+        const { _id } = req.body
+
+        await UserModel.find({_id})
+        .then((user) => {
+            console.log(user[0], user[0].tasksMaster, user[0].tasksMember)
+
+            if(user[0].tasksMaster.length) {
+              return res.status(400).json({
+                message: 'Вы не можете удалить данного пользователя, тк он является ответственным лицом в задаче(ах).. Проверьте участие пользователя в задачах !'
+              })
+            } else {
+              UserModel.deleteOne({_id})
+              .then(() => {
+                return res.status(200).json({
+                  message: 'Пользователь и все его данные были успешно удалены !'
+                })
+              })
+            }
         })
+        .catch(err => console.log(err))
       }
 
       catch {
