@@ -3,7 +3,7 @@ const { Schema, model } = require('mongoose');
 const TaskSchema = new Schema({
     title: { type: String, required: true },
     description: { type: String },
-    status: { type: String },
+    status: { type: String, default: 'isOpened' },
     members: { type: Array },
     performers: { type: Array },
     master: { type: Object },
