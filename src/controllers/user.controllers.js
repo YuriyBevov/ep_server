@@ -10,7 +10,7 @@ const fillUserData = require('../functions/fillUserData');
 
 
 // функция создания jwt-токена
-const generateAccessToken = (payload) => {
+const generateAccessToken = (payload) => { 
   return jwt.sign(payload, SECRET_JWT_KEY, {
       // время действия токена
       expiresIn: '12h'
@@ -171,32 +171,35 @@ class userControllers {
         }
     }
 
+    async updateOne(req, res) {
+      try {
+        const { _id } = req.body
+
+        await UserModel.updateOne({_id}, req.body)
+        .then(() => {
+            return res.status(200).json({
+                message: 'Данные пользователя успешно обновлены !'
+            })
+        })
+        .catch(err => console.log(err))
+      }
+
+      catch {
+          return res.status(400).json({
+              message: 'Произошла непредвиденная ошибка... Попробуйте перезагрузить страницу !'
+          })
+      }
+    }
+
     async deleteOne(req, res) {
       try {
         const { _id } = req.body
 
-        /*await UserModel.find({_id})
-        .then((user) => {
-            if(user[0].tasksMaster.length) {
-              return res.status(400).json({
-                message: 'Вы не можете удалить данного пользователя, тк он является ответственным лицом в задаче(ах).. Проверьте участие пользователя в задачах !'
-              })
-            } else {
-              UserModel.deleteOne({_id})
-              .then(() => {
-                return res.status(200).json({
-                  message: 'Пользователь и все его данные были успешно удалены !'
-                })
-              })
-            }
-        })
-        .catch(err => console.log(err))*/
-
         await UserModel.find({})
         .then(users => {
           let user = users.find(user => user._id == _id)
-          //- отрефакторить
-          if(user.isDepartmentHead) {
+
+          if(user.isDepartmentHead && user.department !== 'Без отдела') {
             let filteredUsers = users.filter(us => us.department === user.department)
             let heads = []
 
@@ -223,7 +226,6 @@ class userControllers {
                   }
               })
               .catch(err => console.log(err))
-
             } else {
               return res.status(400).json({
                 message: 'Вы не можете удалить данного пользователя, тк он является единственным руководителем своего отдела.. '
@@ -232,7 +234,6 @@ class userControllers {
           }
 
           else {
-            console.log('ELSE')
             UserModel.find({_id})
             .then((user) => {
                 if(user[0].tasksMaster.length) {

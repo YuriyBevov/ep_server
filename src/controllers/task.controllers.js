@@ -16,7 +16,7 @@ class taskControllers {
                 department: req.body.department
             }
 
-            await TaskModel.findOne({title})
+            await TaskModel.findOne({title}) 
             .then((task) => {
                 if(task) {
                     return res.status(400).json({
@@ -34,24 +34,26 @@ class taskControllers {
                         .then((users) => {
                             users.forEach(user => {
                                 master !== null ?
-                                master._id == user._id ?
-                                user.tasksMaster.push(task._id) : null
+                                  user._id.equals(master._id) ?
+                                  user.tasksMaster.push(task._id) : null
                                 : null
 
                                 members !== null ?
-                                members.forEach(member => {
-                                    user._id == member._id ?
+                                  members.forEach(member => {
+                                    user._id.equals(member._id) ?
                                     user.tasksMember.push(task._id) : null
-                                }) : null
+                                  }) 
+                                : null
 
                                 performers !== null ?
-                                performers.forEach(performer => {
-                                    user._id == performer._id ?
+                                  performers.forEach(performer => {
+                                    user._id.equals(performer._id) ?
                                     user.tasksPerformer.push(task._id) : null
-                                }) : null
+                                  }) 
+                                : null
                                 
                                 UserModel.updateOne({_id: user._id}, user)
-                                .then(() => {})
+                                .then(() => console.log('user updated'))
                             })
                             
                             return res.status(200).json({
@@ -100,7 +102,7 @@ class taskControllers {
                             isMember ?
                             task.members.push({_id: user._id, fullName: user.fullName}) : null 
                             isMaster ?
-                            task.master = {_id: user._id, fullName: user.fullName} : null
+                            task.master = { _id: user._id, fullName: user.fullName } : null
                             isPerformer ?
                             task.performers.push({_id: user._id, fullName: user.fullName}) : null 
                         })
@@ -138,23 +140,9 @@ class taskControllers {
     async deleteOne(req, res) {
         const { _id } = req.body
         try {
-
-            await TaskModel.deleteOne({_id})
-            .then(() => {
-                return res.status(200).json({
-                    message: "Задача была успешно удалена...",
-                })
-            })
-            .catch((err) => {
-                return res.status(500).json({
-                    message: "Не удалось удалить данные задачи. Попробуйте снова..."
-                })
-            })
-
             await UserModel.find({})
             .then((users) => {
                 users.forEach(user => {
-                    console.log(user.tasksMember, _id)
                     if(user.tasksMember.includes(_id)) {
                         let index = user.tasksMember.indexOf(_id)
                         if (index > -1) {
@@ -177,7 +165,20 @@ class taskControllers {
                     }
 
                     UserModel.updateOne({_id: user._id}, user)
-                    .then(() => {})
+                    .then(() => {
+                        TaskModel.deleteOne({_id})
+                        .then(() => {
+                            return res.status(200).json({
+                                message: "Задача была успешно удалена...",
+                            })
+                        })
+                        .catch((err) => {
+                            return res.status(500).json({
+                                message: "Не удалось удалить данные задачи. Попробуйте снова..."
+                            })
+                        })
+                    })
+                    .catch(err => console.log(err))
                 })            
             })  
             .catch(err => console.log(err))
