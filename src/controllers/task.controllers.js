@@ -98,15 +98,15 @@ class taskControllers {
                 .then(users => {
                     users.forEach(user => {
                         tasks.forEach(task => { 
-                            let isMember = user.tasks.member.find(member => member._id == task._id)
+                            let isMember = user.tasks.member.find(member => member._id.equals(task._id))
                             isMember ?
                             task.members.push({_id: user._id}) : null
 
-                            let isPerformer = user.tasks.performer.find(performer => performer._id == task._id)
+                            let isPerformer = user.tasks.performer.find(performer => performer._id.equals(task._id))
                             isPerformer ?
                             task.performers.push({_id: user._id}) : null
 
-                            let isMaster = user.tasks.master.find(master => master._id == task._id)
+                            let isMaster = user.tasks.master.find(master => master._id.equals(task._id))
                             isMaster ?
                             task.master = { _id: user._id} : null
                         })
