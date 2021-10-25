@@ -40,7 +40,8 @@ class userControllers {
                     const data = req.body
                     data.password = hashPassword
                     
-                    if(isDepartmentHead === false) {
+                    // если в отделе не было руководителя. но это не нужно ...
+                    /*if(isDepartmentHead === false) {
                       UserModel.find({})
                       .then(users => {
                           let depMembers = []
@@ -66,8 +67,10 @@ class userControllers {
                         })
                       })
                     } else {
-                      new UserModel(req.body).save();
-                    }
+                      
+                    }*/
+
+                    new UserModel(req.body).save();
                     
                     return res.status(200).json({
                         message: 'Пользователь был успешно зарегистрирован !'

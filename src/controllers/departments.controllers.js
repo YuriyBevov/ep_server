@@ -3,49 +3,40 @@ const { DepartmentModel, UserModel, TaskModel } = require('../models/index.js');
 class departmentsControllers {
     async getAll(req, res) {
         try {
-            
             await DepartmentModel.find({})
-            .then(async (departments) => {
+            .then(async(departments) => {
                 await UserModel.find({})
                 .then(users => {
-                    // наполняю отдел пользователями
-                    departments.forEach(dep => {
-                        users.find(user => {
-                            user.department === dep.title ?
-                            dep.members.push({_id: user._id, fullName : user.fullName}) : null
-
-                            user.isDepartmentHead === true && user.department === dep.title ?
-                            dep.heads.push({_id: user._id, fullName : user.fullName}) : null
-                        })
-                    })
-                    
-                    return departments
+                    let data = {departments, users}
+                    return data
                 })
-                .then(async (departments) => {
-                    // наполняю отдел задачами
+                .then(async (data) => {
                     await TaskModel.find({})
                     .then(tasks => {
-                        tasks.forEach(task => {
-                            departments.find(dep => {
-                                dep.title === task.department ?
-                                dep.tasks.push({_id: task._id, title: task.title }) : null
+                        data.departments.forEach(department => {
+                            data.users.find(user => {
+                                if(user.department._id == department._id) {
+                                    department.members.push({ _id: user._id, fullName: user.fullName })
+    
+                                    if(user.department.isHead) {
+                                        department.heads.push({ _id: user._id, fullName: user.fullName })
+                                    }
+                                }
+                            })
+
+                            tasks.find(task => {
+                                task.department === department.title ?
+                                department.tasks.push({
+                                    _id: task._id,
+                                    title: task.title
+                                }) : null
                             })
                         })
                     })
-                    .catch(err => console.log('DEP.CONTR.ERR.TASKS'))
+                })
 
-                    return departments
-                })
-                .then((departments) => {
-                    return res.status(200).json({
-                        departments
-                    })
-                })
-                .catch(err => console.log(err))
-            })
-            .catch(err => {
-                return res.status(400).json({
-                    message: 'Не удалось получить список отделов... Попробуйте снова !'
+                return res.status(200).json({
+                    departments
                 })
             })
         }
@@ -92,12 +83,31 @@ class departmentsControllers {
     async updateOne(req, res) {
         const { title, memberList, headList } = req.body
         try {
+            console.log('UPDATE')
+
+            return res.status(200).json({
+                message: 'Состав отдела успешно обновлен !'
+            })
+        }
+        /*try {
             await UserModel.find({})
             .then(users => {
-                memberList.forEach(member => {
+                // все текущие участники отдела
+                let departmentMembers = users.filter(user => user.department === title)
+
+                
+
+                departmentMembers.forEach(depMember => {
+                    depMember.department = ''
+                    depMember.isDepartmentHead = false
+                })
+
+                console.log('departmentMembers', departmentMembers)
+                console.log('memberList',memberList)
+
+                /*memberList.forEach(member => {
                     let user = users.find(person => person._id.equals(member))
 
-                    // изменять только тех пользователей , которые имеют изменения ????? ошибка при исключении пользователя из отдела !!!
                     user.department = title
 
                     headList.forEach(head => {
@@ -108,17 +118,16 @@ class departmentsControllers {
                             user.isDepartmentHead = false
                         }
                     })
-                    
+                    console.log('USER', user)
                     UserModel.updateOne({_id: user._id}, user)
                     .then(() => {})
-                })
-            })
-            .catch(err => console.log(err))
+                })*/
+            /*})
 
             return res.status(200).json({
                 message: 'Состав отдела успешно обновлен !'
             })
-        }
+        }*/
 
         catch {
             return res.status(400).json({

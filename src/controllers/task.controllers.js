@@ -16,6 +16,8 @@ class taskControllers {
                 department: req.body.department
             }
 
+            console.log(req.body.description)
+
             await TaskModel.findOne({title}) 
             .then((task) => {
                 if(task) {
@@ -33,29 +35,32 @@ class taskControllers {
                         UserModel.find({})
                         .then((users) => {
                             users.forEach(user => {
-                                master !== null ?
-                                  user._id.equals(master._id) ?
-                                  user.tasksMaster.push(task._id) : null
-                                : null
+                                if(members !== null){
+                                    members.forEach(member => {
+                                        if(user._id.equals(member._id)) {
+                                            user.tasks.member.push({_id:task._id})
+                                        }
+                                    })
+                                }
 
-                                members !== null ?
-                                  members.forEach(member => {
-                                    user._id.equals(member._id) ?
-                                    user.tasksMember.push(task._id) : null
-                                  }) 
-                                : null
+                                if(performers !== null) {
+                                    performers.forEach(performer => {
+                                        if(user._id.equals(performer._id)) {
+                                            user.tasks.performer.push({_id:task._id})
+                                        }
+                                    })
+                                }
 
-                                performers !== null ?
-                                  performers.forEach(performer => {
-                                    user._id.equals(performer._id) ?
-                                    user.tasksPerformer.push(task._id) : null
-                                  }) 
-                                : null
-                                
+                                if(master !== null) {
+                                    if(user._id.equals(master._id)) {
+                                        user.tasks.master.push({_id: task._id})
+                                    }
+                                }
+
                                 UserModel.updateOne({_id: user._id}, user)
-                                .then(() => console.log('user updated'))
+                                .then(() => {})
                             })
-                            
+
                             return res.status(200).json({
                                 message: 'Задача была успешно создана !'
                             })
@@ -95,19 +100,19 @@ class taskControllers {
                 .then(users => {
                     users.forEach(user => {
                         tasks.forEach(task => { 
-                            let isMember    = user.tasksMember.includes(task._id)
-                            let isMaster    = user.tasksMaster.includes(task._id)
-                            let isPerformer = user.tasksPerformer.includes(task._id)
-
+                            let isMember = user.tasks.member.find(member => member._id.equals(task._id))
                             isMember ?
-                            task.members.push({_id: user._id, fullName: user.fullName}) : null 
-                            isMaster ?
-                            task.master = { _id: user._id, fullName: user.fullName } : null
+                            task.members.push({_id: user._id}) : null
+
+                            let isPerformer = user.tasks.performer.find(performer => performer._id.equals(task._id))
                             isPerformer ?
-                            task.performers.push({_id: user._id, fullName: user.fullName}) : null 
+                            task.performers.push({_id: user._id}) : null
+
+                            let isMaster = user.tasks.master.find(master => master._id.equals(task._id))
+                            isMaster ?
+                            task.master = { _id: user._id} : null
                         })
                     })
-
 
                     tasks.forEach(task => {
                         if(task.master && task.status === 'isOpened') {
@@ -143,44 +148,47 @@ class taskControllers {
             await UserModel.find({})
             .then((users) => {
                 users.forEach(user => {
-                    if(user.tasksMember.includes(_id)) {
-                        let index = user.tasksMember.indexOf(_id)
+                    if(user.tasks.member.length) {
+                        let isMember = user.tasks.member.find(task => task._id.equals(_id))
+                        let index = user.tasks.member.indexOf(isMember)
                         if (index > -1) {
-                            user.tasksMember.splice(index, 1);
+                            user.tasks.member.splice(index, 1);
                         }
                     }
 
-                    if(user.tasksPerformer.includes(_id)) {
-                        let index = user.tasksPerformer.indexOf(_id)
+                    if(user.tasks.performer.length) {
+                        let isPerformer = user.tasks.performer.find(task => task._id.equals(_id))
+                        let index = user.tasks.performer.indexOf(isPerformer)
                         if (index > -1) {
-                            user.tasksPerformer.splice(index, 1);
+                            user.tasks.performer.splice(index, 1);
                         }
                     }
 
-                    if(user.tasksMaster.includes(_id)) {
-                        let index = user.tasksMaster.indexOf(_id)
+                    if(user.tasks.master.length) {
+                        let isMaster = user.tasks.master.find(task => task._id.equals(_id))
+                        let index = user.tasks.master.indexOf(isMaster)
                         if (index > -1) {
-                            user.tasksMaster.splice(index, 1);
+                            user.tasks.master.splice(index, 1);
                         }
                     }
 
                     UserModel.updateOne({_id: user._id}, user)
-                    .then(() => {
-                        TaskModel.deleteOne({_id})
-                        .then(() => {
-                            return res.status(200).json({
-                                message: "Задача была успешно удалена...",
-                            })
-                        })
-                        .catch((err) => {
-                            return res.status(500).json({
-                                message: "Не удалось удалить данные задачи. Попробуйте снова..."
-                            })
-                        })
+                    .then(() => {})
+                })
+            })
+            .then(async () => {
+                await TaskModel.deleteOne({_id})
+                .then(() => {
+                    return res.status(200).json({
+                        message: "Задача была успешно удалена...",
                     })
-                    .catch(err => console.log(err))
-                })            
-            })  
+                })
+                .catch((err) => {
+                    return res.status(500).json({
+                        message: "Не удалось удалить данные задачи. Попробуйте снова..."
+                    })
+                })
+            })
             .catch(err => console.log(err))
         }
 
