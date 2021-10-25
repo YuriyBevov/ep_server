@@ -81,54 +81,43 @@ class departmentsControllers {
     }
 
     async updateOne(req, res) {
-        const { title, memberList, headList } = req.body
+        const { _id, title, memberList } = req.body
         try {
-            console.log('UPDATE')
+            await UserModel.find({})
+            .then(users => {
+                let departmentMembers = users.filter(user => user.department._id === _id)
+
+                departmentMembers.forEach(member => {
+                    member.department = {
+                        _id: null,
+                        title: 'Без отдела',
+                        isHead: false
+                    }
+                })
+
+                users.forEach(user => {
+                    memberList.forEach(member => {
+    
+                        if(member._id == user._id) {
+                            user.department._id = _id,
+                            user.department.title = title
+
+                            if(member.isHead) {
+                                user.department.isHead = true
+                            }
+                        }
+                    })
+
+                    UserModel.updateOne({_id: user._id}, user)
+                    .then(() => {})
+                })
+            })
+            .catch(err => console.log(err))
 
             return res.status(200).json({
                 message: 'Состав отдела успешно обновлен !'
             })
         }
-        /*try {
-            await UserModel.find({})
-            .then(users => {
-                // все текущие участники отдела
-                let departmentMembers = users.filter(user => user.department === title)
-
-                
-
-                departmentMembers.forEach(depMember => {
-                    depMember.department = ''
-                    depMember.isDepartmentHead = false
-                })
-
-                console.log('departmentMembers', departmentMembers)
-                console.log('memberList',memberList)
-
-                /*memberList.forEach(member => {
-                    let user = users.find(person => person._id.equals(member))
-
-                    user.department = title
-
-                    headList.forEach(head => {
-
-                        if(user._id.equals(head)) {
-                            user.isDepartmentHead = true
-                        } else {
-                            user.isDepartmentHead = false
-                        }
-                    })
-                    console.log('USER', user)
-                    UserModel.updateOne({_id: user._id}, user)
-                    .then(() => {})
-                })*/
-            /*})
-
-            return res.status(200).json({
-                message: 'Состав отдела успешно обновлен !'
-            })
-        }*/
-
         catch {
             return res.status(400).json({
                 message: 'Произошла ошибка в процессе создания отдела... Попробуйте снова !'
@@ -138,45 +127,49 @@ class departmentsControllers {
 
     async deleteOne(req, res) {
         try {
+            //ОТДЕЛ!!!
             const { _id, title, tasks} = req.body
-
+            console.log('DEPARTMENT TO DELETE:', req.body)
             await UserModel.find({})
             .then(users => {
-                const filteredUsers = users.filter(user => user.department === title)
+                const filteredUsers = users.filter(user => user.department._id === _id)
 
                 filteredUsers.forEach(user => {
-                    if(user.isDepartmentHead) {
-                        user.isDepartmentHead = false
+                    user.department = { _id: null, title: 'Без отдела', isHead: false }
+
+                    // 3
+                    if(tasks.length) {
+                        tasks.forEach(task => {
+                            // сделать одну функцию !!
+
+                            if(user.tasks.member.length) {
+                                let taskID = user.tasks.member.find(userTask => userTask._id.equals(task._id))
+                                let index = user.tasks.member.indexOf(taskID)
+                                if (index > -1) {
+                                    user.tasks.member.splice(index, 1);
+                                }
+                            }
+
+                            if(user.tasks.performer.length) {
+                                let taskID = user.tasks.performer.find(userTask => userTask._id.equals(task._id))
+                                let index = user.tasks.performer.indexOf(taskID)
+                                if (index > -1) {
+                                    user.tasks.performer.splice(index, 1);
+                                }
+                            }
+
+                            if(user.tasks.master.length) {
+                                let taskID = user.tasks.master.find(userTask => userTask._id.equals(task._id))
+                                let index = user.tasks.master.indexOf(taskID)
+                                if (index > -1) {
+                                    user.tasks.master.splice(index, 1);
+                                }
+                            }
+
+                            TaskModel.deleteOne({_id: task._id })
+                            .then(() => {})
+                        })
                     }
-                    user.department = 'Без отдела'
-
-                    tasks.length ?
-                    tasks.forEach(task => {
-
-                        if(user.tasksMember.includes(task._id)) {
-                            let index = user.tasksMember.indexOf(task._id)
-                            if (index > -1) {
-                                user.tasksMember.splice(index, 1);
-                            }
-                        }
-
-                        if(user.tasksPerformer.includes(task._id)) {
-                            let index = user.tasksPerformer.indexOf(task._id)
-                            if (index > -1) {
-                                user.tasksPerformer.splice(index, 1);
-                            }
-                        }
-    
-                        if(user.tasksMaster.includes(task._id)) {
-                            let index = user.tasksMaster.indexOf(task._id)
-                            if (index > -1) {
-                                user.tasksMaster.splice(index, 1);
-                            }
-                        }
-
-                        TaskModel.deleteOne({_id: task._id })
-                        .then(() => {})
-                    }) : null
 
                     UserModel.updateOne({_id: user._id}, user)
                     .then(() => console.log('user updated'))
