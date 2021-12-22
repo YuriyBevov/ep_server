@@ -40,36 +40,6 @@ class userControllers {
                     const data = req.body
                     data.password = hashPassword
                     
-                    // если в отделе не было руководителя. но это не нужно ...
-                    /*if(isDepartmentHead === false) {
-                      UserModel.find({})
-                      .then(users => {
-                          let depMembers = []
-                          users.forEach(user => {
-                            if(user.department === department){
-                              depMembers.push(user)
-                            }
-                          })
-
-                          if(depMembers.length) {
-                            let isHeadExist = !!depMembers.find(member => member.isDepartmentHead === true)
-
-                            if(!isHeadExist) {
-                              req.body.isDepartmentHead = true
-                            }
-                          }
-
-                          new UserModel(req.body).save();
-                      })
-                      .catch(err => {
-                        return res.status(400).json({
-                            message: 'Произошла ошибка в процессе регистрации... Попробуйте снова !'
-                        })
-                      })
-                    } else {
-                      
-                    }*/
-
                     new UserModel(req.body).save();
                     
                     return res.status(200).json({
@@ -200,60 +170,21 @@ class userControllers {
 
         await UserModel.find({})
         .then(users => {
-          let user = users.find(user => user._id == _id)
+           let user = users.find(user => user._id == _id)
 
-          if(user.isDepartmentHead && user.department !== 'Без отдела') {
-            let filteredUsers = users.filter(us => us.department === user.department)
-            let heads = []
-
-            filteredUsers.forEach(user => {
-              user.isDepartmentHead ?
-              heads.push(user) : null
-            })
-            //--- ошибка , если 1н и он не является рук-м
-            if(heads.length > 1) {
-
-              UserModel.find({_id})
-              .then((user) => {
-                  if(user[0].tasksMaster.length) {
-                    return res.status(400).json({
-                      message: 'Вы не можете удалить данного пользователя, тк он является ответственным лицом некоторых задач.. Проверьте участие пользователя в задачах !'
-                    })
-                  } else {
-                    UserModel.deleteOne({_id})
-                    .then(() => {
-                      return res.status(200).json({
-                        message: 'Пользователь и все его данные были успешно удалены !'
-                      })
-                    })
-                  }
+           if(user.tasks.master.length) {
+              return res.status(400).json({
+                message: 'Вы не можете удалить данного пользователя, тк он является ответственным лицом некоторых задач.. Проверьте текущие задачи пользователя и переназначьте роли !'
+              })
+           } else {
+              UserModel.deleteOne({_id})
+              .then(() => {
+                return res.status(200).json({
+                  message: 'Пользователь и все его данные были успешно удалены !'
+                })
               })
               .catch(err => console.log(err))
-            } else {
-              return res.status(400).json({
-                message: 'Вы не можете удалить данного пользователя, тк он является единственным руководителем своего отдела.. '
-              })
-            }
-          }
-
-          else {
-            UserModel.find({_id})
-            .then((user) => {
-                if(user[0].tasksMaster.length) {
-                  return res.status(400).json({
-                    message: 'Вы не можете удалить данного пользователя, тк он является ответственным лицом некоторых задач.. Проверьте текущие задачи пользователя и переназначьте роли !'
-                  })
-                } else {
-                  UserModel.deleteOne({_id})
-                  .then(() => {
-                    return res.status(200).json({
-                      message: 'Пользователь и все его данные были успешно удалены !'
-                    })
-                  })
-                }
-            })
-            .catch(err => console.log(err))
-          }
+           }
         })
         .catch(err => console.log(err))
       }
